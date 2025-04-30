@@ -1,16 +1,20 @@
 /*
 Copyright © 2025 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
+	"fmt"
+	"log"
 	"os"
+	"path/filepath"
 
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/punkzberryz/cds-simulation-remove/internal/tui"
 	"github.com/spf13/cobra"
 )
 
-
+var folderPath string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -24,7 +28,28 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) > 0 {
+			folderPathArg := args[0]
+			folderPath, err := getDirectory(folderPathArg)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println("Your folder is: ", folderPath)
+		} else {
+			defaultDir, err := getDirectory("")
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println("Your folder is: ", defaultDir)
+		}
+		initialModel := tui.InitialModel()
+		p := tea.NewProgram(initialModel)
+		if _, err := p.Run(); err != nil {
+			fmt.Printf("Error running program: %v\n", err)
+			os.Exit(1)
+		}
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -48,4 +73,11 @@ func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-
+func getDirectory(pathArg string) (string, error) {
+	var path string
+	path, err := filepath.Abs(pathArg)
+	if err != nil {
+		return path, err
+	}
+	return path, nil
+}
