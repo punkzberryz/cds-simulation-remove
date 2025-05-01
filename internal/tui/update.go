@@ -1,6 +1,10 @@
 package tui
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	"strings"
+
+	tea "github.com/charmbracelet/bubbletea"
+)
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
@@ -12,9 +16,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	//if key is press...
 	case tea.KeyMsg:
 		//	key is press, let's see what key is pressed
-		if msg.String() == "ctrl+c" || msg.Type == tea.KeyEnter {
+		switch msg.Type {
+		case tea.KeyEsc, tea.KeyCtrlC:
 			return m, tea.Quit
 		}
+
+		//we only allow user to type input in ASKING state
+		if m.state == ASKING {
+			//In ASKING state and user press enter
+			if msg.Type == tea.KeyEnter {
+				folderPath := strings.TrimSpace(m.textInput.Value())
+				m.parentFolder = folderPath
+				return m, func() tea.Msg {
+				}
+			}
+			var textCmd tea.Cmd
+			m.textInput, textCmd = m.textInput.Update(msg)
+			cmds = append(cmds, textCmd)
+		}
+
 	}
 	return m, tea.Batch(cmds...) //unpacks []Cmd into ...Cmd
 }

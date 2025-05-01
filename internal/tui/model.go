@@ -15,13 +15,15 @@ const (
 )
 
 type Model struct {
-	cursor       int              //which list item you want to delete...
-	selected     map[int]struct{} //which items are selected
-	dataPaths    []string         //directory containing simulation results
-	state        state            //state of the program
-	spinner      spinner.Model    //Spinner ui
-	spinnerFrame int
-	textInput    textinput.Model
+	cursor            int              //which list item you want to delete...
+	selected          map[int]struct{} //which items are selected
+	dataPaths         []string         //directory containing simulation results
+	parentFolder      string
+	state             state         //state of the program
+	availableRoutines int           //available routines
+	spinner           spinner.Model //Spinner ui
+	spinnerFrame      int
+	textInput         textinput.Model
 }
 
 func InitialModel() Model {
@@ -34,12 +36,14 @@ func InitialModel() Model {
 	ti.Focus()
 	ti.Width = 60
 	return Model{
-		state:     ASKING,
-		cursor:    0,
-		selected:  make(map[int]struct{}),
-		dataPaths: []string{},
-		spinner:   s,
-		textInput: ti,
+		state:             ASKING,
+		cursor:            0,
+		selected:          make(map[int]struct{}),
+		dataPaths:         []string{},
+		availableRoutines: 10,
+		spinner:           s,
+		textInput:         ti,
+		parentFolder:      "",
 	}
 }
 
@@ -48,4 +52,8 @@ func (m Model) Init() tea.Cmd {
 		textinput.Blink,
 		m.spinner.Tick,
 	)
+}
+
+type findFilesMsg struct {
+	files []string
 }
